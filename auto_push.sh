@@ -1,10 +1,17 @@
 #!/bin/bash
 cd "D:/solidity-github-2.0"
 
+# Remove stale lock file
 if [ -f ".git/index.lock" ]; then
     echo "Removing stale lock file..."
     rm -f ".git/index.lock"
 fi
+
+# ✅ Add here — Remove any nested .git folders
+find . -mindepth 2 -name ".git" -type d | while read nested; do
+    echo "Removing nested git: $nested"
+    rm -rf "$nested"
+done
 
 git add .
 
