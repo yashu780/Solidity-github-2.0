@@ -1,0 +1,2 @@
+cd "D:/solidity-github-2.0"
+bash auto_push.sh
