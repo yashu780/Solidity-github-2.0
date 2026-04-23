@@ -8,6 +8,8 @@ import {ERC1155Pausable} from "@openzeppelin/contracts/token/ERC1155/extensions/
 import {ERC1155Supply} from "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 
 contract WEB3builder is ERC1155, Ownable, ERC1155Pausable, ERC1155Supply {
+    uint256 public publicprice = 0.01 ether;
+    uint256 public maxsupply = 5000;
     constructor(address initialOwner)
         ERC1155("ipfs://Qmaa6TuP2s9pSKczHF4rwWhTKUdygrrDs8RmYYqCjP3Hye/")
         Ownable(initialOwner)
@@ -25,11 +27,14 @@ contract WEB3builder is ERC1155, Ownable, ERC1155Pausable, ERC1155Supply {
         _unpause();
     }
 
-    function mint(address account, uint256 id, uint256 amount, bytes memory data)
-        public
-        onlyOwner
+    function mint( uint256 id, uint256 amount)
+        public payable
+        
     {
-        _mint(account, id, amount, data);
+        require(msg.value == publicprice* amount,"Insufficient funds");
+        require(id <2,"Invalid token ID");
+        require(totalSupply(id) + amount<= maxsupply,"WE SOLD OUT");
+        _mint(msg.sender, id, amount,"");
     }
 
     function mintBatch(address to, uint256[] memory ids, uint256[] memory amounts, bytes memory data)
