@@ -7,18 +7,22 @@ import {ERC1155} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import {ERC1155Pausable} from "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Pausable.sol";
 import {ERC1155Supply} from "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-//import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
+import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
 
-contract WEB3builder is ERC1155, Ownable, ERC1155Pausable, ERC1155Supply {
+contract WEB3builder is ERC1155, Ownable, ERC1155Pausable, ERC1155Supply, PaymentSplitter{
     uint256 public publicprice = 0.05 ether;
     uint256 public allowListprice = 0.01 ether;
     uint256 public maxsupply = 5000;
     bool public publicMintopen = false;
     bool public allowListopen= true;
      mapping(address=> bool) allowList;
-    constructor(address initialOwner)
+      mapping(address => uint256) purchasesPerWallet;
+uint256 maxperwallet =3;
+    constructor(address[] memory _payees, uint256[] memory _shares)
         ERC1155("ipfs://Qmaa6TuP2s9pSKczHF4rwWhTKUdygrrDs8RmYYqCjP3Hye/")
-        Ownable(initialOwner)
+       PaymentSplitter(
+            _payees,_shares
+        )
     {}
 
     function setURI(string memory newuri) public onlyOwner {
@@ -46,25 +50,30 @@ contract WEB3builder is ERC1155, Ownable, ERC1155Pausable, ERC1155Supply {
        require(msg.value == allowListprice * amount,"Insufficient funds");
         require(id < 2,"Invalid token ID");
         require(allowList[msg.sender],"YOU ARE NOT IN THE ALLOWLIST");
-        require(totalSupply(id) + amount<= maxsupply,"WE SOLD OUT");
-        _mint(msg.sender, id, amount,"");
+        mint( id, amount);
 
     }
     function setAllowlist( address[] calldata addresses) external onlyOwner{
         for(uint256 i=0; i< addresses.length; i++){
-            allowList[addressses[i]] = true;
+            allowList[addresses[i]] = true;
         }
     }
 
-    function mint( uint256 id, uint256 amount)
+    function publicmint( uint256 id, uint256 amount)
         public payable
         
     {
         require(publicMintopen, "PUBLIC MINT CLOSED");
         require(msg.value == publicprice * amount,"Insufficient funds");
         require(id < 2,"Invalid token ID");
-        require(totalSupply(id) + amount<= maxsupply,"WE SOLD OUT");
-        _mint(msg.sender, id, amount,"");
+        mint( id, amount);
+    }
+     function mint(uint256 id, uint256 amount) internal {
+        require(purchasesPerWallet[msg.sender] + amount <= maxperwallet, "Wallet limit reached");
+        require(id < 2, "Sorry looks like you are trying to mint the wrong NFT");
+        require(totalSupply(id) + amount  <= maxsupply, "Sorry we have minted out!");
+        _mint(msg.sender, id, amount, "");
+        purchasesPerWallet[msg.sender] += amount;
     }
 
     function mintBatch(address to, uint256[] memory ids, uint256[] memory amounts, bytes memory data)
@@ -76,8 +85,8 @@ contract WEB3builder is ERC1155, Ownable, ERC1155Pausable, ERC1155Supply {
 
     // The following functions are overrides required by Solidity.
        function editMintWindows(
-        bool _publicMintopen;
-        bool _allowListopen;
+        bool _publicMintopen,
+        bool _allowListopen
        ) external onlyOwner {
         publicMintopen = _publicMintopen;
         allowListopen = _allowListopen;
