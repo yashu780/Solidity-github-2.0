@@ -1,3 +1,9 @@
 [submodule "erc1155-PROJECT/lib/openzeppelin-contracts"]
 	path = erc1155-PROJECT/lib/openzeppelin-contracts
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+[submodule "STAKING-PROJECT/lib/openzeppelin-contracts"]
+	path = STAKING-PROJECT/lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+[submodule "lib/openzeppelin-contracts"]
+	path = lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
